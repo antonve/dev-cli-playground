@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dev CLI Playground</title><link rel="stylesheet" href="/styles.css"></head>
+<body><main id="root"></main><script type="module">
+let revision=0;
+async function update(){const module=await import(`/src/app.tsx?v=${revision++}`);await module.render();}
+await update();
+const events=new EventSource('/__hmr');events.onmessage=()=>update().catch(console.error);
+</script></body></html>

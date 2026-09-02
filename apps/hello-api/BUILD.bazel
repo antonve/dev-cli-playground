@@ -1,0 +1,49 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("//build:dev_deployable.bzl", "dev_deployable")
+load("//build:go_image.bzl", "go_image")
+
+go_library(
+    name = "hello-api_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/antonve/dev-cli-playground/apps/hello-api",
+    visibility = ["//visibility:private"],
+    deps = ["//internal/identity"],
+)
+
+go_binary(
+    name = "hello-api",
+    embed = [":hello-api_lib"],
+    pure = "on",
+    static = "on",
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "image",
+    binary = ":hello-api",
+    binary_name = "hello-api",
+    include_supervisor = True,
+    repository = "registry.dev.lab/dev-cli-playground/hello-api",
+)
+
+dev_deployable(
+    name = "dev",
+    binary_path = "/app/hello-api",
+    build_target = "//apps/hello-api:hello-api",
+    image = "registry.dev.lab/dev-cli-playground/hello-api@sha256:e4e5f9b83d15d791c99b644726238ffed7467506f763d3db07245d062ad80a13",
+    kind = "backend",
+    port = 8081,
+    service_name = "hello-api",
+    source_roots = [
+        "apps/hello-api",
+        "internal/identity",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":hello-api"],
+)
+
+go_test(
+    name = "hello-api_test",
+    srcs = ["main_test.go"],
+    embed = [":hello-api_lib"],
+)
