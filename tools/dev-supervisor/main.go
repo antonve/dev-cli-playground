@@ -20,6 +20,7 @@ type supervisor struct {
 	mu                          sync.Mutex
 	base, next, current, health string
 	cmd                         *exec.Cmd
+	done                        chan error
 }
 
 func copyFile(src, dst string) error {
@@ -55,7 +56,14 @@ func (s *supervisor) start(path string) error {
 		return err
 	}
 	s.cmd = cmd
-	go func() { err := cmd.Wait(); log.Printf("child %s exited: %v", filepath.Base(path), err) }()
+	s.done = make(chan error, 1)
+	done := s.done
+	go func() {
+		err := cmd.Wait()
+		log.Printf("child %s exited: %v", filepath.Base(path), err)
+		done <- err
+		close(done)
+	}()
 	return nil
 }
 func (s *supervisor) stop() {
@@ -63,12 +71,11 @@ func (s *supervisor) stop() {
 		return
 	}
 	_ = s.cmd.Process.Signal(syscall.SIGTERM)
-	done := make(chan struct{})
-	go func() { _, _ = s.cmd.Process.Wait(); close(done) }()
 	select {
-	case <-done:
+	case <-s.done:
 	case <-time.After(2 * time.Second):
 		_ = s.cmd.Process.Kill()
+		<-s.done
 	}
 }
 func (s *supervisor) ready(ctx context.Context) bool {

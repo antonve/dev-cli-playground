@@ -30,7 +30,7 @@ dev_deployable(
     name = "dev",
     binary_path = "/app/echo-api",
     build_target = "//apps/echo-api:echo-api",
-    image = "registry.dev.lab/dev-cli-playground/echo-api@sha256:1a68b4b5d1f73aefedfeded409c10988350e7431c4bae240cd62116f873b1e1f",
+    image = "registry.dev.lab/dev-cli-playground/echo-api@sha256:d5e3e09bd0d5f70c43c903d3f21d600ef8d4ee3494a81a9b846d47acd5946e15",
     kind = "backend",
     port = 8082,
     service_name = "echo-api",
