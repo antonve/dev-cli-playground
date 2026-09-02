@@ -1,0 +1,49 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("//build:dev_deployable.bzl", "dev_deployable")
+load("//build:go_image.bzl", "go_image")
+
+go_library(
+    name = "echo-api_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/antonve/dev-cli-playground/apps/echo-api",
+    visibility = ["//visibility:private"],
+    deps = ["//internal/identity"],
+)
+
+go_binary(
+    name = "echo-api",
+    embed = [":echo-api_lib"],
+    pure = "on",
+    static = "on",
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "image",
+    binary = ":echo-api",
+    binary_name = "echo-api",
+    include_supervisor = True,
+    repository = "registry.dev.lab/dev-cli-playground/echo-api",
+)
+
+dev_deployable(
+    name = "dev",
+    binary_path = "/app/echo-api",
+    build_target = "//apps/echo-api:echo-api",
+    image = "registry.dev.lab/dev-cli-playground/echo-api@sha256:1a68b4b5d1f73aefedfeded409c10988350e7431c4bae240cd62116f873b1e1f",
+    kind = "backend",
+    port = 8082,
+    service_name = "echo-api",
+    source_roots = [
+        "apps/echo-api",
+        "internal/identity",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":echo-api"],
+)
+
+go_test(
+    name = "echo-api_test",
+    srcs = ["main_test.go"],
+    embed = [":echo-api_lib"],
+)

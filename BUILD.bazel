@@ -1,0 +1,9 @@
+load("@gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/antonve/dev-cli-playground
+gazelle(name = "gazelle")
+
+alias(
+    name = "gofmt",
+    actual = "@playground_go_sdk//:bin/gofmt",
+)

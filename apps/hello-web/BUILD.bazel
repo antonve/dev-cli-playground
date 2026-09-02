@@ -1,0 +1,63 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("//build:dev_deployable.bzl", "dev_deployable")
+load("//build:go_image.bzl", "go_image")
+
+filegroup(
+    name = "web_sources",
+    srcs = glob(["web/**"]),
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "hello-web_lib",
+    srcs = ["main.go"],
+    embedsrcs = [
+        "web/index.html",
+        "web/src/app.tsx",
+        "web/styles.css",
+    ],
+    importpath = "github.com/antonve/dev-cli-playground/apps/hello-web",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "hello-web",
+    embed = [":hello-web_lib"],
+    pure = "on",
+    static = "on",
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "image",
+    binary = ":hello-web",
+    binary_name = "hello-web",
+    repository = "registry.dev.lab/dev-cli-playground/hello-web",
+)
+
+dev_deployable(
+    name = "dev",
+    binary_path = "/app/hello-web",
+    build_target = "//apps/hello-web:hello-web",
+    image = "registry.dev.lab/dev-cli-playground/hello-web@sha256:9cea9b7fc143022ce7fa0c244ab3036ee01140ba2ce0a9fb29acd2a04ab9ca59",
+    kind = "frontend",
+    port = 8080,
+    service_name = "hello-web",
+    source_roots = ["apps/hello-web/web"],
+    sync_paths = [
+        "apps/hello-web/web/index.html",
+        "apps/hello-web/web/src/app.tsx",
+        "apps/hello-web/web/styles.css",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":hello-web",
+        ":web_sources",
+    ],
+)
+
+go_test(
+    name = "hello-web_test",
+    srcs = ["main_test.go"],
+    embed = [":hello-web_lib"],
+)

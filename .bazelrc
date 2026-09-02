@@ -1,0 +1,10 @@
+common --enable_workspace=false
+common --enable_platform_specific_config
+common --lockfile_mode=error
+common --@bazel_tools//tools/test:incompatible_use_default_test_toolchain=false
+build --@rules_go//go/config:pure=true
+common:agent --color=no
+common:agent --curses=no
+build:agent --platforms=@rules_go//go/toolchain:linux_amd64
+build:agent --verbose_failures
+test:agent --test_output=errors
