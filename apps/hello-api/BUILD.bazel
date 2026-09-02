@@ -30,7 +30,7 @@ dev_deployable(
     name = "dev",
     binary_path = "/app/hello-api",
     build_target = "//apps/hello-api:hello-api",
-    image = "registry.dev.lab/dev-cli-playground/hello-api@sha256:e4e5f9b83d15d791c99b644726238ffed7467506f763d3db07245d062ad80a13",
+    image = "registry.dev.lab/dev-cli-playground/hello-api@sha256:6f74e07e3d0272d4fe13a99207440d391f1b46533d3a6e7cc234081f99cd448f",
     kind = "backend",
     port = 8081,
     service_name = "hello-api",

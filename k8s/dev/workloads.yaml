@@ -143,7 +143,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: registry.dev.lab/dev-cli-playground/hello-api@sha256:e4e5f9b83d15d791c99b644726238ffed7467506f763d3db07245d062ad80a13
+          image: registry.dev.lab/dev-cli-playground/hello-api@sha256:6f74e07e3d0272d4fe13a99207440d391f1b46533d3a6e7cc234081f99cd448f
           imagePullPolicy: IfNotPresent
           env:
             - {name: DEV_BRANCH, value: base}
@@ -200,7 +200,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: registry.dev.lab/dev-cli-playground/echo-api@sha256:1a68b4b5d1f73aefedfeded409c10988350e7431c4bae240cd62116f873b1e1f
+          image: registry.dev.lab/dev-cli-playground/echo-api@sha256:d5e3e09bd0d5f70c43c903d3f21d600ef8d4ee3494a81a9b846d47acd5946e15
           imagePullPolicy: IfNotPresent
           env:
             - {name: DEV_BRANCH, value: base}
