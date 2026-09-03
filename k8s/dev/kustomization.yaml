@@ -7,11 +7,11 @@ resources:
   - ingress.yaml
 images:
   - name: hello-web
-    newName: ghcr.io/antonve/dev-cli-playground/hello-web
+    newName: registry.dev.lab/dev-cli-playground/hello-web
     newTag: latest
   - name: hello-api
-    newName: ghcr.io/antonve/dev-cli-playground/hello-api
+    newName: registry.dev.lab/dev-cli-playground/hello-api
     newTag: latest
   - name: echo-api
-    newName: ghcr.io/antonve/dev-cli-playground/echo-api
+    newName: registry.dev.lab/dev-cli-playground/echo-api
     newTag: latest
