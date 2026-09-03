@@ -5,13 +5,16 @@ It contains three intentionally small Bazel-owned deployables and all default
 development-cluster manifests under `k8s/dev`.
 
 ```sh
+pnpm install --frozen-lockfile
+pnpm test && pnpm typecheck && pnpm build
 bazel test --config=agent //...
-bazel build --config=agent //...
+bazel build --config=agent //apps/hello-web:image //apps/hello-api:image //apps/echo-api:image
 kubectl kustomize k8s/dev
 ```
 
-The browser reaches `dev-router`, which discards any client-supplied
-`x-dev-branch` header and recreates it from the scoped `dev_branch` cookie.
-Both the router and `hello-api` independently prefer a matching overlay Service
-and fall back to the always-running base. See `docs/architecture.md` and
-`docs/conformance.md`.
+The pnpm/TanStack/Vite frontend supports filesystem sync and native HMR. Envoy
+Gateway derives branch routing from the scoped `dev_branch` cookie, and the CLI
+creates per-service HTTPRoutes with independent base fallback. Repository images
+are registry-neutral in Bazel; CI publishes base images to GHCR and `dev up`
+publishes affected branch images to the configured development registry. See
+`docs/architecture.md` and `docs/conformance.md`.

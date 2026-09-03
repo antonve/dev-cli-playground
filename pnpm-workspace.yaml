@@ -1,0 +1,7 @@
+packages:
+  - "apps/hello-web"
+
+hoist: false
+
+allowBuilds:
+  esbuild: true

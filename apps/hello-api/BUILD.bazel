@@ -22,17 +22,19 @@ go_image(
     name = "image",
     binary = ":hello-api",
     binary_name = "hello-api",
-    include_supervisor = True,
-    repository = "registry.dev.lab/dev-cli-playground/hello-api",
 )
 
 dev_deployable(
     name = "dev",
     binary_path = "/app/hello-api",
     build_target = "//apps/hello-api:hello-api",
-    image = "registry.dev.lab/dev-cli-playground/hello-api@sha256:6f74e07e3d0272d4fe13a99207440d391f1b46533d3a6e7cc234081f99cd448f",
+    container_path = "/app/hello-api",
+    image_name = "hello-api",
+    image_target = "//apps/hello-api:image",
     kind = "backend",
     port = 8081,
+    public_path = "/api",
+    push_target = "//apps/hello-api:image_push",
     service_name = "hello-api",
     source_roots = [
         "apps/hello-api",
