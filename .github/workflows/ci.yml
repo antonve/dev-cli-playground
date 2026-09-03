@@ -35,6 +35,22 @@ jobs:
         run: |
           bazel test //... --noshow_progress
           bazel build //apps/hello-web:image //apps/hello-api:image //apps/echo-api:image --noshow_progress
+      - name: Stage CI-built OCI layouts
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p "$RUNNER_TEMP/oci-images"
+          for service in hello-web hello-api echo-api; do
+            cp -RL "bazel-bin/apps/${service}/image" "$RUNNER_TEMP/oci-images/${service}"
+          done
+      - name: Upload CI-built image archives
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v6
+        with:
+          name: oci-images-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/oci-images
+          if-no-files-found: error
+          retention-days: 7
       - name: Log in to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v4.6.0
