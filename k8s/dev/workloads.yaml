@@ -1,73 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dev-router
-  namespace: dev-cli-playground
-  labels:
-    app.kubernetes.io/name: dev-router
-    app.kubernetes.io/part-of: dev-cli-playground
-    app.kubernetes.io/managed-by: argocd
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: dev-router
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: dev-router
-        app.kubernetes.io/part-of: dev-cli-playground
-        app.kubernetes.io/managed-by: argocd
-    spec:
-      containers:
-        - name: router
-          image: registry.dev.lab/dev-cli-playground/dev-router@sha256:8e94340b6458e6e3b011ada6386436903a97f9f961a8294476564bb9b79a6248
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: DEV_NAMESPACE
-              value: dev-cli-playground
-          ports:
-            - name: http
-              containerPort: 8080
-          readinessProbe:
-            httpGet:
-              path: /__dev/current
-              port: http
-            periodSeconds: 2
-          resources:
-            requests: {cpu: 10m, memory: 24Mi}
-            limits: {cpu: 500m, memory: 192Mi}
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities: {drop: [ALL]}
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile: {type: RuntimeDefault}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dev-router
-  namespace: dev-cli-playground
-  labels:
-    app.kubernetes.io/name: dev-router
-    app.kubernetes.io/part-of: dev-cli-playground
-    app.kubernetes.io/managed-by: argocd
-spec:
-  selector:
-    app.kubernetes.io/name: dev-router
-  ports:
-    - name: http
-      port: 80
-      targetPort: http
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: hello-web
   namespace: dev-cli-playground
-  labels:
+  labels: &web-labels
     app.kubernetes.io/name: hello-web
     app.kubernetes.io/part-of: dev-cli-playground
     app.kubernetes.io/managed-by: argocd
@@ -75,32 +11,27 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app.kubernetes.io/name: hello-web
+    matchLabels: {app.kubernetes.io/name: hello-web}
   template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: hello-web
-        app.kubernetes.io/part-of: dev-cli-playground
-        app.kubernetes.io/managed-by: argocd
-        dev-cli.io/service: hello-web
+    metadata: {labels: *web-labels}
     spec:
       containers:
         - name: app
-          image: registry.dev.lab/dev-cli-playground/hello-web@sha256:9cea9b7fc143022ce7fa0c244ab3036ee01140ba2ce0a9fb29acd2a04ab9ca59
-          imagePullPolicy: IfNotPresent
+          image: hello-web:latest
+          imagePullPolicy: Always
           env:
             - {name: DEV_BRANCH, value: base}
-            - {name: DEV_REVISION, value: base}
-          ports:
-            - {name: http, containerPort: 8080}
+            - {name: DEV_REVISION, value: main}
+          ports: [{name: http, containerPort: 8080}]
           readinessProbe: {httpGet: {path: /readyz, port: http}, periodSeconds: 2}
           resources:
-            requests: {cpu: 10m, memory: 24Mi}
-            limits: {cpu: 500m, memory: 192Mi}
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: "1", memory: 512Mi}
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             capabilities: {drop: [ALL]}
       securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
 ---
@@ -116,15 +47,14 @@ metadata:
     dev-cli.io/service: hello-web
 spec:
   selector: {app.kubernetes.io/name: hello-web}
-  ports:
-    - {name: http, port: 8080, targetPort: http}
+  ports: [{name: http, port: 8080, targetPort: http}]
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello-api
   namespace: dev-cli-playground
-  labels:
+  labels: &hello-labels
     app.kubernetes.io/name: hello-api
     app.kubernetes.io/part-of: dev-cli-playground
     app.kubernetes.io/managed-by: argocd
@@ -134,23 +64,18 @@ spec:
   selector:
     matchLabels: {app.kubernetes.io/name: hello-api}
   template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: hello-api
-        app.kubernetes.io/part-of: dev-cli-playground
-        app.kubernetes.io/managed-by: argocd
-        dev-cli.io/service: hello-api
+    metadata: {labels: *hello-labels}
     spec:
       containers:
         - name: app
-          image: registry.dev.lab/dev-cli-playground/hello-api@sha256:6f74e07e3d0272d4fe13a99207440d391f1b46533d3a6e7cc234081f99cd448f
-          imagePullPolicy: IfNotPresent
+          image: hello-api:latest
+          imagePullPolicy: Always
           env:
             - {name: DEV_BRANCH, value: base}
-            - {name: DEV_REVISION, value: base}
+            - {name: DEV_REVISION, value: main}
             - {name: DEV_NAMESPACE, value: dev-cli-playground}
-          ports:
-            - {name: http, containerPort: 8081}
+            - {name: DEV_INTERNAL_GATEWAY, value: http://dev-cli-gateway}
+          ports: [{name: http, containerPort: 8081}]
           readinessProbe: {httpGet: {path: /readyz, port: http}, periodSeconds: 2}
           resources:
             requests: {cpu: 10m, memory: 24Mi}
@@ -158,6 +83,9 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
             capabilities: {drop: [ALL]}
       securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
 ---
@@ -173,15 +101,14 @@ metadata:
     dev-cli.io/service: hello-api
 spec:
   selector: {app.kubernetes.io/name: hello-api}
-  ports:
-    - {name: http, port: 8081, targetPort: http}
+  ports: [{name: http, port: 8081, targetPort: http}]
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: echo-api
   namespace: dev-cli-playground
-  labels:
+  labels: &echo-labels
     app.kubernetes.io/name: echo-api
     app.kubernetes.io/part-of: dev-cli-playground
     app.kubernetes.io/managed-by: argocd
@@ -191,22 +118,16 @@ spec:
   selector:
     matchLabels: {app.kubernetes.io/name: echo-api}
   template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: echo-api
-        app.kubernetes.io/part-of: dev-cli-playground
-        app.kubernetes.io/managed-by: argocd
-        dev-cli.io/service: echo-api
+    metadata: {labels: *echo-labels}
     spec:
       containers:
         - name: app
-          image: registry.dev.lab/dev-cli-playground/echo-api@sha256:d5e3e09bd0d5f70c43c903d3f21d600ef8d4ee3494a81a9b846d47acd5946e15
-          imagePullPolicy: IfNotPresent
+          image: echo-api:latest
+          imagePullPolicy: Always
           env:
             - {name: DEV_BRANCH, value: base}
-            - {name: DEV_REVISION, value: base}
-          ports:
-            - {name: http, containerPort: 8082}
+            - {name: DEV_REVISION, value: main}
+          ports: [{name: http, containerPort: 8082}]
           readinessProbe: {httpGet: {path: /readyz, port: http}, periodSeconds: 2}
           resources:
             requests: {cpu: 10m, memory: 24Mi}
@@ -214,6 +135,9 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
             capabilities: {drop: [ALL]}
       securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
 ---
@@ -229,5 +153,4 @@ metadata:
     dev-cli.io/service: echo-api
 spec:
   selector: {app.kubernetes.io/name: echo-api}
-  ports:
-    - {name: http, port: 8082, targetPort: http}
+  ports: [{name: http, port: 8082, targetPort: http}]

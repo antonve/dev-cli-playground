@@ -4,3 +4,4 @@ metadata:
   name: dev-cli-playground
   labels:
     app.kubernetes.io/part-of: dev-cli-playground
+    dev-cli.io/routing-enabled: "true"
