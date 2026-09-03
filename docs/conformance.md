@@ -1,28 +1,42 @@
 # Conformance and operations
 
-## Build and render
+## Clean build and render
 
 ```sh
+pnpm install --frozen-lockfile
+pnpm test
+pnpm typecheck
+pnpm build
 bazel test --config=agent //...
-bazel build --config=agent //...
+bazel build --config=agent //apps/hello-web:image //apps/hello-api:image //apps/echo-api:image
 kubectl kustomize k8s/dev >/dev/null
 ```
 
 ## Base and routing checks
 
+Set `route` to the key printed by `dev up` or `dev status`:
+
 ```sh
-curl --cacert path/to/lab-root-ca.crt https://dev-cli-playground.dev.lab/api/diagnostic
-curl --cacert path/to/lab-root-ca.crt -c /tmp/a.cookie -b /tmp/a.cookie \
-  'https://dev-cli-playground.dev.lab/__dev/select?branch=<route-key>'
-curl --cacert path/to/lab-root-ca.crt -b /tmp/a.cookie \
-  https://dev-cli-playground.dev.lab/api/diagnostic
+host=https://dev-cli-playground.dev.lab
+route=<route-key>
+
+# No cookie: all hops are base. A forged browser header is removed.
+curl --cacert path/to/lab-root-ca.crt "$host/api/diagnostic"
+curl --cacert path/to/lab-root-ca.crt -H 'x-dev-branch: forged' "$host/api/diagnostic"
+
+# Selected branch: each service independently uses its overlay or base.
+curl --cacert path/to/lab-root-ca.crt -H "Cookie: dev_branch=$route" "$host/api/diagnostic"
+
+# A separate session remains base.
+curl --cacert path/to/lab-root-ca.crt "$host/api/diagnostic"
 ```
 
-Expected cases are: no cookie uses both base services; a hello-api-only overlay
-uses overlay hello-api and base echo-api; adding echo-api makes both hops use
-the overlay; a second cookie jar remains base or selects a different route.
-Deleting one overlay causes that service alone to return to base on the next
-request.
+The required matrix is: no cookie uses all base services; a hello-api-only
+overlay uses overlay hello-api and base echo-api; adding echo-api selects both
+overlays; a second cookie selects another route without leakage; removing one
+overlay falls back for only that service. The frontend menu writes or clears
+the same Secure, SameSite=Lax, path-scoped cookie.
 
-`dev status` reports route ownership and expiry. `dev down` deletes only the
-current owner/route selector. `dev cleanup` removes expired managed routes.
+`dev status` reports route ownership, affected workloads, HTTPRoute count,
+sync health, and expiry. `dev down` deletes only resources matching the current
+owner and route. `dev cleanup` removes expired CLI-managed routes.

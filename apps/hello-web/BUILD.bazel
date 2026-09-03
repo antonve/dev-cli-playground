@@ -1,63 +1,85 @@
-load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//apps/hello-web:typescript/package_json.bzl", tsc = "bin")
+load("@npm//apps/hello-web:vite/package_json.bzl", vite = "bin")
 load("//build:dev_deployable.bzl", "dev_deployable")
-load("//build:go_image.bzl", "go_image")
+load("//build:frontend_image.bzl", "frontend_image")
+
+npm_link_all_packages(name = "node_modules")
 
 filegroup(
-    name = "web_sources",
-    srcs = glob(["web/**"]),
+    name = "sources",
+    srcs = glob([
+        "src/**",
+        "index.html",
+        "package.json",
+        "server.mjs",
+        "tsconfig.json",
+        "vite.config.ts",
+        "vitest.config.ts",
+    ]),
     visibility = ["//visibility:public"],
 )
 
-go_library(
-    name = "hello-web_lib",
-    srcs = ["main.go"],
-    embedsrcs = [
-        "web/index.html",
-        "web/src/app.tsx",
-        "web/styles.css",
+tsc.tsc_test(
+    name = "typecheck",
+    args = ["--noEmit"],
+    chdir = package_name(),
+    data = [
+        ":node_modules",
+        ":sources",
     ],
-    importpath = "github.com/antonve/dev-cli-playground/apps/hello-web",
-    visibility = ["//visibility:private"],
 )
 
-go_binary(
-    name = "hello-web",
-    embed = [":hello-web_lib"],
-    pure = "on",
-    static = "on",
-    visibility = ["//visibility:public"],
+vite.vite(
+    name = "bundle",
+    args = ["build"],
+    chdir = package_name(),
+    data = [
+        ":node_modules",
+        ":sources",
+    ],
+    out_dirs = ["dist"],
 )
 
-go_image(
+frontend_image(
     name = "image",
-    binary = ":hello-web",
-    binary_name = "hello-web",
-    repository = "registry.dev.lab/dev-cli-playground/hello-web",
+    bundle = ":bundle",
+    srcs = [
+        "//:package.json",
+        "//:pnpm-lock.yaml",
+        "//:pnpm-workspace.yaml",
+        ":sources",
+    ],
 )
 
 dev_deployable(
     name = "dev",
-    binary_path = "/app/hello-web",
-    build_target = "//apps/hello-web:hello-web",
-    image = "registry.dev.lab/dev-cli-playground/hello-web@sha256:9cea9b7fc143022ce7fa0c244ab3036ee01140ba2ce0a9fb29acd2a04ab9ca59",
+    build_target = "//apps/hello-web:image",
+    dev_command = [
+        "/bin/sh",
+        "-lc",
+        "corepack pnpm install --frozen-lockfile && corepack pnpm --filter @dev-cli/hello-web dev",
+    ],
+    image_name = "hello-web",
+    image_target = "//apps/hello-web:image",
     kind = "frontend",
     port = 8080,
+    public_path = "/",
+    push_target = "//apps/hello-web:image_push",
     service_name = "hello-web",
-    source_roots = ["apps/hello-web/web"],
-    sync_paths = [
-        "apps/hello-web/web/index.html",
-        "apps/hello-web/web/src/app.tsx",
-        "apps/hello-web/web/styles.css",
+    source_roots = [
+        "apps/hello-web",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
     ],
+    sync_paths = ["apps/hello-web"],
     visibility = ["//visibility:public"],
     deps = [
-        ":hello-web",
-        ":web_sources",
+        ":image",
+        ":sources",
+        "//:package.json",
+        "//:pnpm-lock.yaml",
+        "//:pnpm-workspace.yaml",
     ],
-)
-
-go_test(
-    name = "hello-web_test",
-    srcs = ["main_test.go"],
-    embed = [":hello-web_lib"],
 )

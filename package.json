@@ -1,0 +1,14 @@
+{
+  "name": "@dev-cli/playground",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @dev-cli/hello-web build",
+    "dev": "pnpm --filter @dev-cli/hello-web dev",
+    "test": "pnpm --filter @dev-cli/hello-web test",
+    "typecheck": "pnpm --filter @dev-cli/hello-web typecheck"
+  }
+}

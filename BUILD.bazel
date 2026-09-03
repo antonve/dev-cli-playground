@@ -1,4 +1,13 @@
 load("@gazelle//:def.bzl", "gazelle")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+exports_files([
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+])
 
 # gazelle:prefix github.com/antonve/dev-cli-playground
 gazelle(name = "gazelle")

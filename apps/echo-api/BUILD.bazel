@@ -22,17 +22,19 @@ go_image(
     name = "image",
     binary = ":echo-api",
     binary_name = "echo-api",
-    include_supervisor = True,
-    repository = "registry.dev.lab/dev-cli-playground/echo-api",
 )
 
 dev_deployable(
     name = "dev",
     binary_path = "/app/echo-api",
     build_target = "//apps/echo-api:echo-api",
-    image = "registry.dev.lab/dev-cli-playground/echo-api@sha256:d5e3e09bd0d5f70c43c903d3f21d600ef8d4ee3494a81a9b846d47acd5946e15",
+    container_path = "/app/echo-api",
+    image_name = "echo-api",
+    image_target = "//apps/echo-api:image",
     kind = "backend",
+    internal_host = "echo-api.internal",
     port = 8082,
+    push_target = "//apps/echo-api:image_push",
     service_name = "echo-api",
     source_roots = [
         "apps/echo-api",

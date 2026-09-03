@@ -1,4 +1,5 @@
 exports_files([
     "dev_deployable.bzl",
+    "frontend_image.bzl",
     "go_image.bzl",
 ])
