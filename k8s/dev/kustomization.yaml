@@ -3,4 +3,15 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - workloads.yaml
+  - routing.yaml
   - ingress.yaml
+images:
+  - name: hello-web
+    newName: registry.dev.lab/dev-cli-playground/hello-web
+    newTag: latest
+  - name: hello-api
+    newName: registry.dev.lab/dev-cli-playground/hello-api
+    newTag: latest
+  - name: echo-api
+    newName: registry.dev.lab/dev-cli-playground/echo-api
+    newTag: latest

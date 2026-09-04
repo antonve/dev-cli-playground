@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-cli-gateway
+  namespace: dev-cli-playground
+  labels:
+    app.kubernetes.io/name: dev-cli-gateway
+    app.kubernetes.io/part-of: dev-cli-playground
+    app.kubernetes.io/managed-by: argocd
+spec:
+  type: ExternalName
+  externalName: dev-cli-playground-gateway.envoy-gateway-system.svc.cluster.local
+  ports:
+    - {name: http, port: 80, targetPort: 80}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-api-base
+  namespace: dev-cli-playground
+  labels: {app.kubernetes.io/managed-by: argocd, dev-cli.io/service: hello-api}
+spec:
+  parentRefs:
+    - {name: dev-cli-playground, namespace: envoy-gateway-system}
+  hostnames: [dev-cli-playground.dev.lab]
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /api}
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier: {remove: [x-dev-branch]}
+      backendRefs:
+        - {name: hello-api, port: 8081}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-web-base
+  namespace: dev-cli-playground
+  labels: {app.kubernetes.io/managed-by: argocd, dev-cli.io/service: hello-web}
+spec:
+  parentRefs:
+    - {name: dev-cli-playground, namespace: envoy-gateway-system}
+  hostnames: [dev-cli-playground.dev.lab]
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier: {remove: [x-dev-branch]}
+      backendRefs:
+        - {name: hello-web, port: 8080}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo-api-base
+  namespace: dev-cli-playground
+  labels: {app.kubernetes.io/managed-by: argocd, dev-cli.io/service: echo-api}
+spec:
+  parentRefs:
+    - {name: dev-cli-playground, namespace: envoy-gateway-system}
+  hostnames: [echo-api.internal]
+  rules:
+    - backendRefs:
+        - {name: echo-api, port: 8082}

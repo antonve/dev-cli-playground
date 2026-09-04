@@ -13,8 +13,14 @@ Bazel graph and publishes both `latest` and `sha-<commit>` tags:
 - `ghcr.io/antonve/dev-cli-playground/hello-api`
 - `ghcr.io/antonve/dev-cli-playground/echo-api`
 
+The same run retains Docker-compatible image archives for seven days. The
+Homelab release gate promotes those exact CI outputs to the private development
+registry as `registry.dev.lab/dev-cli-playground/<service>:latest`; the hosted
+runner does not receive private-Lab network access. GHCR remains the CI build
+record, while the cluster pulls anonymously from its dedicated Zot registry.
+
 The workload specs use logical image names. The environment Kustomization is
-the single injection point that maps those names to the configured GHCR
+the single injection point that maps those names to the configured Zot
 repositories and `latest` tags. A real application should let Argo CD Image
 Updater write immutable digests at that layer.
 
