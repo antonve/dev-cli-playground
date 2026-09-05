@@ -29,6 +29,9 @@ spec:
       filters:
         - type: RequestHeaderModifier
           requestHeaderModifier: {remove: [x-dev-branch]}
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set: [{name: Cache-Control, value: no-store}, {name: Vary, value: Cookie}]
       backendRefs:
         - {name: hello-api, port: 8081}
 ---
@@ -48,6 +51,9 @@ spec:
       filters:
         - type: RequestHeaderModifier
           requestHeaderModifier: {remove: [x-dev-branch]}
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set: [{name: Cache-Control, value: no-store}, {name: Vary, value: Cookie}]
       backendRefs:
         - {name: hello-web, port: 8080}
 ---
