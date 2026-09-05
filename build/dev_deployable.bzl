@@ -18,6 +18,8 @@ def _impl(ctx):
         "readinessPath": ctx.attr.readiness_path,
         "sourceRoots": ctx.attr.source_roots,
         "syncPaths": ctx.attr.sync_paths,
+        "dependencyPaths": ctx.attr.dependency_paths,
+        "dependencyCommand": ctx.attr.dependency_command,
     }) + "\n")
     return [DefaultInfo(files = depset([output]))]
 
@@ -28,6 +30,8 @@ dev_deployable = rule(
         "build_target": attr.string(mandatory = True),
         "container_path": attr.string(),
         "dev_command": attr.string_list(),
+        "dependency_paths": attr.string_list(),
+        "dependency_command": attr.string_list(),
         "deps": attr.label_list(allow_files = True),
         "image_name": attr.string(mandatory = True),
         "image_target": attr.string(mandatory = True),

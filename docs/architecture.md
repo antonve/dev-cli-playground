@@ -55,6 +55,9 @@ and Vitest. Bazel invokes Vite for the production bundle and builds the OCI
 image. For development, the CLI starts that image once with the repository's
 declared pnpm/Vite command, copies changed source files into its writable
 workspace, and leaves Vite responsible for filesystem watching and HMR.
+Sync includes the root pnpm manifest, lockfile, and workspace configuration.
+Metadata declares those dependency inputs and the frozen pnpm install command,
+so the CLI reinstalls dependencies when they change, not on each source edit.
 
 Backend images contain only Alpine and their statically linked Go binary. The
 CLI injects its own versioned POSIX supervisor through a ConfigMap, builds the
