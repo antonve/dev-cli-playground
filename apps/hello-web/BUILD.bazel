@@ -66,7 +66,7 @@ dev_deployable(
     dev_command = [
         "/bin/sh",
         "-lc",
-        "corepack pnpm install --frozen-lockfile && corepack pnpm --filter @dev-cli/hello-web dev",
+        "pnpm install --frozen-lockfile && pnpm --filter @dev-cli/hello-web dev",
     ],
     image_name = "hello-web",
     image_target = "//apps/hello-web:image",
@@ -93,7 +93,7 @@ dev_deployable(
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
     ],
-    dependency_command = ["corepack", "pnpm", "install", "--frozen-lockfile"],
+    dependency_command = ["pnpm", "install", "--frozen-lockfile"],
     visibility = ["//visibility:public"],
     deps = [
         ":image",

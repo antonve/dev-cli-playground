@@ -1,10 +1,18 @@
 """Registry-neutral OCI image for a pnpm/Vite application."""
 
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "strip_prefix")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 def frontend_image(name, srcs, bundle):
+    pkg_tar(
+        name = "_" + name + "_pnpm",
+        deps = ["@pnpm_runtime//:layer"],
+        symlinks = {
+            "/usr/local/bin/pnpm": "/opt/pnpm/bin/pnpm.cjs",
+            "/usr/local/bin/pnpx": "/opt/pnpm/bin/pnpx.cjs",
+        },
+    )
     pkg_files(
         name = "_" + name + "_files",
         srcs = srcs,
@@ -32,6 +40,7 @@ def frontend_image(name, srcs, bundle):
         cmd = ["apps/hello-web/server.mjs"],
         entrypoint = ["node"],
         tars = [
+            ":" + "_" + name + "_pnpm",
             ":" + "_" + name + "_layer",
             ":" + "_" + name + "_bundle_layer",
         ],
@@ -39,3 +48,4 @@ def frontend_image(name, srcs, bundle):
         workdir = "/workspace",
     )
     oci_push(name = name + "_push", image = ":" + name)
+    oci_load(name = name + "_load", image = ":" + name, repo_tags = ["dev-cli-playground/hello-web:validation"])

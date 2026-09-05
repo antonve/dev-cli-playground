@@ -59,6 +59,17 @@ Sync includes the root pnpm manifest, lockfile, and workspace configuration.
 Metadata declares those dependency inputs and the frozen pnpm install command,
 so the CLI reinstalls dependencies when they change, not on each source edit.
 
+The image packages pnpm directly from a checksum-pinned npm archive through
+Bazel. Development and dependency commands invoke `pnpm`, never Corepack.
+Keep the archive version in `MODULE.bazel` aligned with `packageManager` in
+`package.json`; CI checks the installed command/version as UID 1000, performs a
+frozen dependency install, and runs frontend tests inside the built image.
+CI itself uses `pnpm/action-setup`; local developers should install the pinned
+pnpm directly (for example `npm install --global pnpm@10.34.5`). Corepack may
+remain unused in the upstream Node base; unrelated package-manager shims are
+not removed from developer machines. Neither Node nor the pnpm lockfile is
+upgraded as part of removing this dependency.
+
 Backend images contain only Alpine and their statically linked Go binary. The
 CLI injects its own versioned POSIX supervisor through a ConfigMap, builds the
 changed Bazel binary, stages it in a writable volume, restarts the process, and

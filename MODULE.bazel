@@ -1,5 +1,31 @@
 module(name = "dev_cli_playground", version = "0.1.0")
 
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Keep aligned with package.json; the image smoke test checks the actual version.
+http_archive(
+    name = "pnpm_runtime",
+    urls = ["https://registry.npmjs.org/pnpm/-/pnpm-10.34.5.tgz"],
+    integrity = "sha512-pO4F8vc2WCVb1qiYWcBlpFwopX2u+uLIk6Fo7itzFow3uR6D5X6mdlStA/AwMXRkMOi84442LgQmBfuKvIAZLg==",
+    strip_prefix = "package",
+    build_file_content = """
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "strip_prefix")
+pkg_files(
+    name = "files",
+    srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "REPO.bazel"]),
+    prefix = "/opt/pnpm",
+    strip_prefix = strip_prefix.from_root(),
+    attributes = pkg_attributes(mode = "0755"),
+)
+pkg_tar(
+    name = "layer",
+    srcs = [":files"],
+    visibility = ["//visibility:public"],
+)
+""",
+)
+
 bazel_dep(name = "aspect_rules_js", version = "3.4.1")
 bazel_dep(name = "gazelle", version = "0.52.2")
 bazel_dep(name = "hermetic_cc_toolchain", version = "4.2.0")
