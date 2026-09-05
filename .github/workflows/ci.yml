@@ -35,6 +35,18 @@ jobs:
         run: |
           bazel test //... --noshow_progress
           bazel build //apps/hello-web:image //apps/hello-api:image //apps/echo-api:image --noshow_progress
+      - name: Smoke test direct pnpm in the non-root runtime image
+        run: |
+          bazel run //apps/hello-web:image_load --noshow_progress
+          docker run --rm --entrypoint /bin/sh dev-cli-playground/hello-web:validation -ec '
+            mkdir /tmp/no-corepack
+            ln -s /bin/false /tmp/no-corepack/corepack
+            export PATH=/tmp/no-corepack:$PATH
+            test "$(readlink /usr/local/bin/pnpm)" = /opt/pnpm/bin/pnpm.cjs
+            test "pnpm@$(pnpm --version)" = "$(node -p "require(\"./package.json\").packageManager")"
+            pnpm install --frozen-lockfile
+            pnpm --filter @dev-cli/hello-web test
+          '
       - name: Stage CI-built OCI layouts
         if: github.event_name == 'push'
         run: |
