@@ -73,7 +73,19 @@ dev_deployable(
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
     ],
-    sync_paths = ["apps/hello-web"],
+    sync_paths = [
+        "apps/hello-web",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+    ],
+    dependency_paths = [
+        "apps/hello-web/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+    ],
+    dependency_command = ["corepack", "pnpm", "install", "--frozen-lockfile"],
     visibility = ["//visibility:public"],
     deps = [
         ":image",
