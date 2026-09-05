@@ -1,6 +1,7 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//apps/hello-web:typescript/package_json.bzl", tsc = "bin")
 load("@npm//apps/hello-web:vite/package_json.bzl", vite = "bin")
+load("@npm//apps/hello-web:vitest/package_json.bzl", vitest = "bin")
 load("//build:dev_deployable.bzl", "dev_deployable")
 load("//build:frontend_image.bzl", "frontend_image")
 
@@ -28,6 +29,13 @@ tsc.tsc_test(
         ":node_modules",
         ":sources",
     ],
+)
+
+vitest.vitest_test(
+    name = "test",
+    args = ["run"],
+    chdir = package_name(),
+    data = [":node_modules", ":sources"],
 )
 
 vite.vite(
