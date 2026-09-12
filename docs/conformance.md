@@ -14,6 +14,34 @@ kubectl kustomize k8s/dev >/dev/null
 
 ## Base and routing checks
 
+With dev-cli v0.3+, use `dev url --owner <owner> '/desired/path?tab=profile'`
+to open a branch directly; the gateway sets the cookie without any frontend
+handler. `dev url --owner <owner> --clear '/desired/path'` selects base.
+The older menu remains optional, not an integration requirement.
+
+For two environments with only hello-web and echo-api changed, run the
+read-only query-link test (each route must have been started with v0.3+):
+
+```sh
+python3 conformance/deep_links.py \
+  --route-a "$route_a" --branch-a "$branch_a" \
+  --route-b "$route_b" --branch-b "$branch_b"
+```
+
+It verifies first-request selection, old-cookie and forged-header precedence,
+cookie persistence, switching, clearing, separate sessions, a deep page with
+other query parameters, HEAD selection, POST non-selection, unknown selectors,
+80 concurrent requests, and base hello-api calling overlay echo-api. It does not
+mutate Kubernetes resources or claim browser HMR proof.
+
+Browser acceptance: open the generated links in two isolated browser contexts,
+check that the existing path/query/fragment survive, and switch/clear without
+using the menu. With one foreground loop running, make a second App.tsx heading
+edit: the DOM should update without changing `performance.timeOrigin` or unsaved
+input. Change echo's displayed service label and fetch fresh diagnostics to prove
+binary live sync; compare pod UIDs and image digests before and after. The other
+owner and a no-cookie browser must remain unchanged.
+
 Set `route` to the key printed by `dev up` or `dev status`:
 
 ```sh
