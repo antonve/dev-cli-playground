@@ -8,5 +8,6 @@
   "gatewayNamespace": "envoy-gateway-system",
   "cookieName": "dev_branch",
   "ttl": "8h",
-  "metadataQuery": "kind(dev_deployable, //...)"
+  "metadataQuery": "kind(dev_deployable, //...)",
+  "clusterIssuer": "lab-ca-acme"
 }
