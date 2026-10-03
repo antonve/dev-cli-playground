@@ -14,6 +14,13 @@ kubectl kustomize k8s/dev >/dev/null
 
 ## Base and routing checks
 
+The default configuration targets `homelab-talos-dev`. The Homelab Talos root
+owns the playground Argo Application, which deploys `k8s/dev` using promoted
+CI image digests. Before starting branch checks, confirm the Application is
+Synced and Healthy and all three base Deployments are Ready. Base workloads and
+routes stay Argo-owned; conformance environments use distinct CLI owners and
+are removed with their matching `dev down --owner <owner>`.
+
 With dev-cli v0.3+, use `dev url --owner <owner> '/desired/path?tab=profile'`
 to open a branch directly; the gateway sets the cookie without any frontend
 handler. `dev url --owner <owner> --clear '/desired/path'` selects base.

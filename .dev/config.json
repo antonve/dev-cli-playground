@@ -1,5 +1,5 @@
 {
-  "kubeContext": "homelab-dev",
+  "kubeContext": "homelab-talos-dev",
   "namespace": "dev-cli-playground",
   "registry": "registry.dev.lab/dev-cli-playground",
   "ingressHost": "dev-cli-playground.dev.lab",
