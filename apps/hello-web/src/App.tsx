@@ -1,14 +1,10 @@
 import { Outlet } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { clearRoute, selectRoute, selectedRoute, validRoute } from "./branch"
 
 type Diagnostic = Record<string, unknown>
 
 export default function App() {
-  const [selected, setSelected] = useState(() => selectedRoute())
-  const [candidate, setCandidate] = useState(() => selectedRoute())
   const [diagnostic, setDiagnostic] = useState<Diagnostic>({ loading: true })
-  const [error, setError] = useState("")
 
   useEffect(() => {
     Promise.all([
@@ -17,25 +13,7 @@ export default function App() {
     ])
       .then(([web, request]) => setDiagnostic({ web, request }))
       .catch((cause: unknown) => setDiagnostic({ error: String(cause) }))
-  }, [selected])
-
-  const choose = () => {
-    setError("")
-    if (!validRoute(candidate)) {
-      setError("Use the DNS-safe route key printed by dev up or dev status.")
-      return
-    }
-    selectRoute(candidate)
-    setSelected(candidate)
-    window.location.reload()
-  }
-
-  const clear = () => {
-    clearRoute()
-    setSelected("")
-    setCandidate("")
-    window.location.reload()
-  }
+  }, [])
 
   return (
     <main>
@@ -44,21 +22,10 @@ export default function App() {
         <h1>Dev CLI Playground</h1>
         <p>Each service independently selects this branch overlay or its always-running base.</p>
       </header>
-      <section className="menu">
-        <label htmlFor="route">Branch route key</label>
-        <input
-          id="route"
-          value={candidate}
-          onChange={(event) => setCandidate(event.target.value.trim())}
-          placeholder="owner-feature-hash"
-          autoComplete="off"
-        />
-        <div className="actions">
-          <button type="button" onClick={choose}>Select branch</button>
-          <button type="button" className="secondary" onClick={clear}>Clear</button>
-        </div>
-        {error && <p className="error">{error}</p>}
-        <p>Selected: <code>{selected || "base"}</code></p>
+      <section>
+        <p>Host: <code>{window.location.hostname}</code></p>
+        <label htmlFor="route">Unsaved scratch note</label>
+        <input id="route" placeholder="Type here to verify HMR preserves input" autoComplete="off" />
       </section>
       <section>
         <h2>Request diagnostics</h2>
