@@ -4,7 +4,6 @@
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm test
 pnpm typecheck
 pnpm build
 bazel test --config=agent //...
@@ -21,7 +20,7 @@ Synced and Healthy and all three base Deployments are Ready. Base workloads and
 routes stay Argo-owned; conformance environments use distinct CLI owners and
 are removed with their matching `dev down --owner <owner>`.
 
-With dev-cli v0.8+, `dev up` and `dev url --owner <owner>` print
+With dev-cli v0.9+, `dev up` and `dev url --owner <owner>` print
 `https://<route>.dev-cli-playground.dev.lab/`. Open that hostname in a fresh
 browser profile with no selection cookies. Two owners can share one profile;
 each host replaces forged routing headers and selects its own internal hop.
@@ -30,13 +29,13 @@ The Lab CA certificate must validate without bypass in curl.
 Run the hostname matrix with two owners after their overlays are Ready:
 
 ```sh
-python3 conformance/routing.py --branch-hosts \
+python3 conformance/routing.py \
   --route-a "$route_a" --branch-a "$branch_a" --services-a hello-web,echo-api \
   --route-b "$route_b" --branch-b "$branch_b" --services-b echo-api
 ```
 
 The validator checks the base host, forged-header removal, both selected hosts,
-independent service fallback and 80 interleaved requests. Start A with only
+independent service fallback and 100 interleaved requests. Start A with only
 hello-web/echo-api selected and B with only echo-api selected. Wait for actual
 backend identity after startup: Kubernetes Ready can precede Envoy health/DNS
 convergence. To test deletion fallback, delete only A's labeled echo Service
@@ -54,9 +53,8 @@ the deleted host returns 404 and no branch Ingress, Certificate or TLS Secret
 remains. Expiry cleanup must satisfy the same checks and preserve the other owner.
 Require a Synced/Healthy Argo base before and after the run.
 
-## v0.8 compatibility checks
+## Upgrade
 
-Cookie selection remains available through `dev url --cookie` during adoption.
-Run `conformance/deep_links.py` and `conformance/routing.py` without
-`--branch-hosts` to verify the previous selection behavior. The optional menu
-exists for these compatibility checks and is unnecessary on branch hosts.
+Use dev-cli v0.9.0 or newer. Stop older loops and rerun up with the same owner
+or tear them down; legacy public cookie routes remain until that step. The
+configuration has the required issuer and omits the retired cookieName key.

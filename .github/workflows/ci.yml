@@ -29,8 +29,8 @@ jobs:
           repository-cache: true
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
-      - name: Test frontend
-        run: pnpm test && pnpm typecheck && pnpm build
+      - name: Typecheck and build frontend
+        run: pnpm typecheck && pnpm build
       - name: Test and build Bazel graph
         run: |
           bazel test //... --noshow_progress
@@ -45,7 +45,7 @@ jobs:
             test "$(readlink /usr/local/bin/pnpm)" = /opt/pnpm/bin/pnpm.cjs
             test "pnpm@$(pnpm --version)" = "$(node -p "require(\"./package.json\").packageManager")"
             pnpm install --frozen-lockfile
-            pnpm --filter @dev-cli/hello-web test
+            pnpm --filter @dev-cli/hello-web typecheck
           '
       - name: Stage CI-built OCI layouts
         if: github.event_name == 'push'

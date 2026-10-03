@@ -44,8 +44,8 @@ For browser traffic, a branch route matches `<route>.dev-cli-playground.dev.lab`
 replaces `x-dev-branch` with the validated route key. Base routes remove any
 browser-supplied routing header. dev-cli creates one owner-scoped Ingress and
 Lab CA certificate per branch; deleting the Ingress removes its owned Certificate
-and Secret. v0.8 retains scoped cookie/query links as a compatibility fallback. Route precedence selects the matching branch
-route when present and the base route otherwise. Every service gets its own
+and Secret. v0.9 requires the issuer and selects only by hostname.
+The base hostname retains base routing; deleted branch hosts return 404. Every service gets its own
 branch route, so its backend independently points to the overlay Service or the
 always-running base Service.
 

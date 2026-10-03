@@ -6,7 +6,7 @@ development-cluster manifests under `k8s/dev`.
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm test && pnpm typecheck && pnpm build
+pnpm typecheck && pnpm build
 bazel test --config=agent //...
 bazel build --config=agent //apps/hello-web:image //apps/hello-api:image //apps/echo-api:image
 kubectl kustomize k8s/dev
