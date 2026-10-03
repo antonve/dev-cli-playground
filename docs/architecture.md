@@ -19,10 +19,14 @@ registry as `registry.dev.lab/dev-cli-playground/<service>:latest`; the hosted
 runner does not receive private-Lab network access. GHCR remains the CI build
 record, while the cluster pulls anonymously from its dedicated Zot registry.
 
-The workload specs use logical image names. The environment Kustomization is
-the single injection point that maps those names to the configured Zot
-repositories and `latest` tags. A real application should let Argo CD Image
-Updater write immutable digests at that layer.
+The workload specs use logical image names. The environment Kustomization maps
+those names to Zot repositories. The Homelab Talos-root Argo Application owns
+the base deployment and pins its three image digests through Kustomize image
+overrides. Promote images from the successful CI run for the selected source
+revision before syncing that Application. The dedicated playground namespace
+keeps this fixture separate from other development applications. A real
+application should let Argo CD Image Updater write immutable digests at that
+layer.
 
 For branch work, Bazel metadata names an image and a registry-neutral push
 target. `dev up` builds only affected image targets, publishes them to the
