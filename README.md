@@ -13,7 +13,7 @@ kubectl kustomize k8s/dev
 ```
 
 The pnpm/TanStack/Vite frontend supports filesystem sync and native HMR. Envoy
-Gateway derives branch routing from the scoped `dev_branch` cookie, and the CLI
+Gateway derives branch routing from the branch hostname, and the CLI
 creates per-service HTTPRoutes with independent base fallback. Repository images
 are registry-neutral in Bazel; CI publishes base images to GHCR and `dev up`
 publishes affected branch images to the configured development registry. See
