@@ -40,9 +40,11 @@ Homelab owns Envoy Gateway and a shared Gateway. The playground declares only
 its base HTTPRoutes and an ingress pointing at the platform gateway Service.
 The CLI declares temporary, labeled HTTPRoutes for each active branch.
 
-For browser traffic, a branch route matches the scoped `dev_branch` cookie and
+For browser traffic, a branch route matches `<route>.dev-cli-playground.dev.lab` and
 replaces `x-dev-branch` with the validated route key. Base routes remove any
-browser-supplied routing header. Route precedence selects the matching branch
+browser-supplied routing header. dev-cli creates one owner-scoped Ingress and
+Lab CA certificate per branch; deleting the Ingress removes its owned Certificate
+and Secret. v0.8 retains scoped cookie/query links as a compatibility fallback. Route precedence selects the matching branch
 route when present and the base route otherwise. Every service gets its own
 branch route, so its backend independently points to the overlay Service or the
 always-running base Service.

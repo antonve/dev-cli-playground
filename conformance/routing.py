@@ -1,4 +1,4 @@
-"""Read-only live conformance: two independent cookie sessions, both HTTP hops."""
+"""Read-only live conformance: two independent branch hosts or cookie sessions, both HTTP hops."""
 
 import argparse
 import concurrent.futures
@@ -13,18 +13,22 @@ def main():
         parser.add_argument(f"--route-{key}", required=True)
         parser.add_argument(f"--branch-{key}", required=True)
         parser.add_argument(f"--services-{key}", default="")
+    parser.add_argument("--branch-hosts", action="store_true")
     args = parser.parse_args()
 
     def check(case):
         name, cookie, forged, branch, services, normalized = case
         headers = {"Cache-Control": "no-cache"}
-        if cookie:
+        host = args.host.rstrip("/")
+        if cookie and args.branch_hosts:
+            host = host.replace("://", "://" + cookie + ".", 1)
+        elif cookie:
             headers["Cookie"] = "dev_branch=" + cookie
         if forged:
             headers["x-dev-branch"] = forged
         responses = []
         for path in ("/__web", "/api/diagnostic"):
-            request = urllib.request.Request(args.host.rstrip("/") + path, headers=headers)
+            request = urllib.request.Request(host + path, headers=headers)
             with urllib.request.urlopen(request, timeout=5) as response:
                 responses.append(json.load(response))
         web, api = responses
@@ -43,9 +47,11 @@ def main():
         ("session-a", args.route_a, args.route_b, args.branch_a, set(args.services_a.split(",")), args.route_a),
         ("session-b", args.route_b, args.route_a, args.branch_b, set(args.services_b.split(",")), args.route_b),
     ]
+    if args.branch_hosts:
+        cases = [case for case in cases if case[0] != "missing-overlay-cookie"]
     for case in cases:
         check(case)
-    # Each request carries its own session cookie; no shared mutable cookie jar.
+    # Each request independently selects its host or compatibility cookie.
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(check, cases * 10))
     print(json.dumps({"passed": True, "cases": [c[0] for c in cases], "concurrent_requests": len(results) * 2}))
